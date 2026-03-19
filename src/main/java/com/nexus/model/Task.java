@@ -23,7 +23,7 @@ public class Task {
         this.status = TaskStatus.TO_DO;
         
         // Ação do Aluno:
-        totalTasksCreated++; 
+        totalTasksCreated++;
     }
 
     /**
@@ -33,6 +33,17 @@ public class Task {
     public void moveToInProgress(User user) {
         // TODO: Implementar lógica de proteção e atualizar activeWorkload
         // Se falhar, incrementar totalValidationErrors e lançar NexusValidationException
+
+        if(this.user == null) {
+            totalValidationErrors++;
+            throw new NexusValidationException("Não é possível mover uma tarefa para 'in progress' sem usuário associado a tarefa.");
+        } else if(this.status == TaskStatus.BLOCKED) {
+            totalValidationErrors++;
+            throw new NexusValidationException("Não é possível mover uma tarefa do estado 'blocked' para 'in progress'.");
+        } else {
+            this.status = TaskStatus.IN_PROGRESS;
+            activeWorkload++;
+        }
     }
 
     /**
@@ -41,12 +52,26 @@ public class Task {
      */
     public void markAsDone() {
         // TODO: Implementar lógica de proteção e atualizar activeWorkload (decrementar)
+        if(this.status == TaskStatus.BLOCKED) {
+            totalValidationErrors++;
+            throw NexusValidationException("Não é possível mover uma tarefa do status 'blocked' para 'done'.");
+        }
+        this.status = TaskStatus.DONE;
     }
 
     public void setBlocked(boolean blocked) {
+
         if (blocked) {
+            if(this.status == TaskStatus.DONE) {
+                totalValidationErrors++;
+                throw NexusValidationException("Não é possível mover uma tarefa do status 'done' para 'blocked'.");
+            }
             this.status = TaskStatus.BLOCKED;
         } else {
+            if(this.status != TaskStatus.BLOCKED) {
+                totalValidationErrors++;
+                throw NexusValidationException("A tarefa não tem status blocked");
+            }
             this.status = TaskStatus.TO_DO; // Simplificação para o Lab
         }
     }
