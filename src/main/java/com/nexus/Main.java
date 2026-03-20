@@ -44,6 +44,7 @@ public class Main {
                     System.out.println("Encerrando Nexus Motor...");
                     running = false;
                 }
+                
                 case "1" -> addUser();
                 case "2" -> addTask();
                 case "3" -> listTasks();
@@ -53,6 +54,9 @@ public class Main {
                     String file = (logChoice.equals("1")) ? "log_v1.txt" : "log_v2.txt";
                     logProcessor.processLog(file, workspace, users);
                 }
+                /** 
+                    * Adicionar opções para criação de projetos
+                */ 
                 default -> System.out.println("\n[!] Opção inválida.");
             }
         }
@@ -107,8 +111,10 @@ public class Main {
             String title = scanner.nextLine();
             System.out.print("Prazo (AAAA-MM-DD): ");
             LocalDate deadline = LocalDate.parse(scanner.nextLine());
+            System.out.print("Esforço Estimado (horas): ");
+            int estimatedEffort = Integer.parseInt(scanner.nextLine());
 
-            Task newTask = new Task(title, deadline);
+            Task newTask = new Task(title, deadline, estimatedEffort);
             workspace.addTask(newTask);
             System.out.println("[OK] Tarefa adicionada ao backlog.");
         } catch (DateTimeParseException e) {

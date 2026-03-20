@@ -12,18 +12,24 @@ public class Task {
 
     private int id;
     private LocalDate deadline; // Imutável após o nascimento
+    private int effort; // Esforço estimado em horas (definido no construtor)
     private String title;
     private TaskStatus status;
     private User owner;
 
-    public Task(String title, LocalDate deadline) {
+    public Task(String title, LocalDate deadline, int effort) {
         this.id = nextId++;
         this.deadline = deadline;
+        this.effort = effort;
         this.title = title;
         this.status = TaskStatus.TO_DO;
         
         // Ação do Aluno:
         totalTasksCreated++; 
+    }
+
+    public int getEffort() {
+        return this.effort;
     }
 
     /**
