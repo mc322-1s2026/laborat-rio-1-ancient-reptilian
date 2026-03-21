@@ -114,7 +114,7 @@ public class Main {
             System.out.print("Esforço Estimado (horas): ");
             int estimatedEffort = Integer.parseInt(scanner.nextLine());
 
-            Task newTask = new Task(title, deadline, estimatedEffort);
+            Task newTask = new Task(title, deadline);
             workspace.addTask(newTask);
             System.out.println("[OK] Tarefa adicionada ao backlog.");
         } catch (DateTimeParseException e) {
