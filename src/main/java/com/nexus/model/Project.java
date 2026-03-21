@@ -17,6 +17,12 @@ public class Project {
     private int effortSum = 0; // Soma do esforço das tarefas IN_PROGRESS (facilitar validação)
 
     public Project(String name, int totalBudget) {
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("Nome do projeto não pode ser vazio.");
+        }
+        if (totalBudget < 0) {
+            throw new IllegalArgumentException("Orçamento total não pode ser negativo.");
+        }
         this.id = nextId++;
         this.name = name;
         this.totalBudget = totalBudget;
