@@ -45,7 +45,10 @@ public class Project {
         if (effortSum + newWorkload <= totalBudget) {
             effortSum += newWorkload;
         } else {
-            throw new NexusValidationException("A soma do esforço das tarefas excede o orçamento total do projeto.");
+            throw new NexusValidationException(
+                "Não é possível adicionar tarefa '" + task.getTitle() +
+                "' ao projeto '" + name + "'. Orçamento excedido."
+            );
         }
     
         tasks.add(task);
