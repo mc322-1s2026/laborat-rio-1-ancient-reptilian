@@ -12,6 +12,7 @@ public class Task {
 
     private int id;
     private LocalDate deadline; // Imutável após o nascimento
+    private int effort; // Esforço estimado em horas (definido no construtor)
     private String title;
     private TaskStatus status;
     private User owner;
@@ -19,6 +20,7 @@ public class Task {
     public Task(String title, LocalDate deadline) {
         this.id = nextId++;
         this.deadline = deadline;
+        this.effort = 0; // Valor padrão, pode ser atualizado posteriormente
         this.title = title;
         this.status = TaskStatus.TO_DO;
         
@@ -27,20 +29,30 @@ public class Task {
     }
 
     /**
+     * Define o esforço estimado para a tarefa. Deve ser um valor não negativo.
+     */
+    public void defineEffort(int effort) {
+        if (effort < 0) {
+            throw new IllegalArgumentException("Esforço não pode ser negativo.");
+        }
+        this.effort = effort;
+    }
+    
+    /**
      * Move a tarefa para IN_PROGRESS.
      * Regra: Só é possível se houver um owner atribuído e não estiver BLOCKED.
-     */
-    public void moveToInProgress(User user) {
-        // TODO: Implementar lógica de proteção e atualizar activeWorkload
+    */
+   public void moveToInProgress(User user) {
+       // TODO: Implementar lógica de proteção e atualizar activeWorkload
         // Se falhar, incrementar totalValidationErrors e lançar NexusValidationException
     }
-
+    
     /**
      * Finaliza a tarefa.
      * Regra: Só pode ser movida para DONE se não estiver BLOCKED.
-     */
-    public void markAsDone() {
-        // TODO: Implementar lógica de proteção e atualizar activeWorkload (decrementar)
+    */
+   public void markAsDone() {
+       // TODO: Implementar lógica de proteção e atualizar activeWorkload (decrementar)
     }
 
     public void setBlocked(boolean blocked) {
@@ -55,6 +67,7 @@ public class Task {
     public int getId() { return id; }
     public TaskStatus getStatus() { return status; }
     public String getTitle() { return title; }
+    public int getEffort() {return this.effort;}
     public LocalDate getDeadline() { return deadline; }
     public User getOwner() { return owner; }
 }
