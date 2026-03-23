@@ -1,10 +1,13 @@
 package com.nexus.service;
 
-import com.nexus.model.*;
-import com.nexus.exception.NexusValidationException;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
+
+import com.nexus.exception.NexusValidationException;
+import com.nexus.model.Project;
+import com.nexus.model.Task;
+import com.nexus.model.User;
 
 public class LogProcessor {
 
@@ -33,10 +36,64 @@ public class LogProcessor {
                                 users.add(new User(p[1], p[2]));
                                 System.out.println("[LOG] Usuário criado: " + p[1]);
                             }
+                            case "CREATE_PROJECT" -> {
+                                Project project = new Project(p[1], Integer.parseInt(p[2]));
+                                workspace.addProject(project);
+                                System.out.println("[LOG] Projeto criado: " + p[1]);
+                            }
                             case "CREATE_TASK" -> {
                                 Task t = new Task(p[1], LocalDate.parse(p[2]));
+                                t.defineEffort(Integer.parseInt(p[3]));
+                                Project project = workspace.getProjectByName(p[4]);
+                                project.addTask(t);
                                 workspace.addTask(t);
                                 System.out.println("[LOG] Tarefa criada: " + p[1]);
+                            }
+                            case "ASSING_USER" -> {
+                                Task task = workspace.getTaskById(Integer.parseInt(p[1]));
+                                User user = workspace.getUserByName(p[2], users);
+                                task.moveToInProgress(user);
+                                System.out.println("[LOG] Tarefa '" + p[1] + "' atribuída a " + p[2]);
+                            }
+                            case "CHANGE_STATUS" -> {
+                                Task task = workspace.getTaskById(Integer.parseInt(p[1]));
+                                String newStatus = p[2];
+                                switch (newStatus) {
+                                    case "TO_DO" -> {
+                                        task.markAsDone();
+                                        System.out.println("[LOG] Tarefa '" + p[1] + "' marcada como DONE");
+                                    }
+                                    case "IN_PROGRESS" -> {
+                                        task.setBlocked(true);
+                                        System.out.println("[LOG] Tarefa '" + p[1] + "' bloqueada");
+                                    }
+                                    case "BLOCKED" -> {
+                                        task.setBlocked(false);
+                                        System.out.println("[LOG] Tarefa '" + p[1] + "' desbloqueada");
+                                    }
+                                    case "DONE" -> {
+                                        task.markAsDone();
+                                        System.out.println("[LOG] Tarefa '" + p[1] + "' marcada como DONE");
+                                    }
+                                    default -> throw new NexusValidationException("Status desconhecido: " + newStatus);
+                                }
+                            }
+                            case "REPORT_STATUS" -> {
+                                System.out.println(
+                                    "[LOG] Usuários com mais tarefas concluídas: " 
+                                    + String.join(", ", workspace.topPerformUsers(users)));
+                                
+                                System.out.println(
+                                    "[LOG] Usuários sobrecarregados: " 
+                                    + String.join(", ", workspace.overloadedUsers(users)));
+                                    
+                                System.out.println(
+                                    "[LOG] Status de tarefas: " + workspace.globalBottleNeck());
+
+                                System.out.println(
+                                    "[LOG] Percentual de conclusão de tarefas:\n" 
+                                    + workspace.projectsHealth(workspace.getProjects()));
+                                
                             }
                             default -> System.err.println("[WARN] Ação desconhecida: " + action);
                         }
