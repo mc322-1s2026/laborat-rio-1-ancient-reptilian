@@ -42,10 +42,14 @@ public class Workspace {
 
     public List<String> overloadedUsers(List<User> users) {
         // Retorna usuários com mais de 5 tarefas IN_PROGRESS
-        return users.stream()
+        List<String> overloaded = users.stream()
             .filter(u -> u.calculateWorkload(tasks) > 10)
             .map(User::consultUsername)
             .toList();
+        if (overloaded.isEmpty()) {
+            return List.of("Nenhum usuário sobrecarregado.");
+        }
+        return overloaded;
     }
 
 
@@ -72,7 +76,7 @@ public class Workspace {
 
     public List<Task> doneTasksByOwner(User owner) {
         return tasks.stream()
-            .filter(task -> task.getOwner().equals(owner) && task.getStatus() == TaskStatus.DONE)
+            .filter(task -> task.getOwner() == owner && task.getStatus() == TaskStatus.DONE)
             .toList();
     }
 
@@ -95,7 +99,7 @@ public class Workspace {
             return "TO_DO, IN_PROGRESS e BLOCKED empatados em ocorrências.";
         }
         
-        return String.join(" e ", bottlenecks) + " com maiores ocorrências.";
+        return String.join(" e ", bottlenecks) + " com maior(es) ocorrência(s).";
     }
 
 

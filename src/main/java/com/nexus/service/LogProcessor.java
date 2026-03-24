@@ -33,8 +33,12 @@ public class LogProcessor {
                     try {
                         switch (action) {
                             case "CREATE_USER" -> {
-                                users.add(new User(p[1], p[2]));
-                                System.out.println("[LOG] Usuário criado: " + p[1]);
+                                try {
+                                    users.add(new User(p[1], p[2]));
+                                    System.out.println("[LOG] Usuário criado: " + p[1]);
+                                } catch (IllegalArgumentException e) {
+                                    System.err.println("[ERRO DE ENTRADA] Falha ao criar usuário: " + e.getMessage());
+                                }
                             }
                             case "CREATE_PROJECT" -> {
                                 Project project = new Project(p[1], Integer.parseInt(p[2]));
@@ -44,12 +48,12 @@ public class LogProcessor {
                             case "CREATE_TASK" -> {
                                 Task t = new Task(p[1], LocalDate.parse(p[2]));
                                 t.defineEffort(Integer.parseInt(p[3]));
+                                workspace.addTask(t);
                                 Project project = workspace.getProjectByName(p[4]);
                                 project.addTask(t);
-                                workspace.addTask(t);
                                 System.out.println("[LOG] Tarefa criada: " + p[1]);
                             }
-                            case "ASSING_USER" -> {
+                            case "ASSIGN_USER" -> {
                                 Task task = workspace.getTaskById(Integer.parseInt(p[1]));
                                 User user = workspace.getUserByName(p[2], users);
                                 task.moveToInProgress(user);
