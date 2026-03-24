@@ -9,8 +9,26 @@ import com.nexus.model.Project;
 import com.nexus.model.Task;
 import com.nexus.model.User;
 
+/**
+ * Processador de logs do sistema Nexus.
+ *
+ * Responsável por ler arquivos de log contendo comandos de criação e alteração de entidades
+ * (usuários, projetos, tarefas) e executar as operações correspondentes no sistema.
+ */
 public class LogProcessor {
 
+    /**
+     * Processa um arquivo de log de comandos, executando operações de criação e alteração
+     * de usuários, projetos e tarefas, além de relatórios analíticos.
+     *
+     * O método garante que exceções de negócio (NexusValidationException) e de entrada
+     * (IllegalArgumentException) sejam capturadas e relatadas, sem interromper o processamento
+     * do lote, conforme a estratégia fail-fast do Nexus.
+     *
+     * @param fileName nome do arquivo de log a ser processado (deve estar em resources)
+     * @param workspace instância do Workspace onde as entidades serão manipuladas
+     * @param users lista global de usuários do sistema
+     */
     public void processLog(String fileName, Workspace workspace, List<User> users) {
         try {
             // Busca o arquivo dentro da pasta de recursos do projeto (target/classes)
@@ -33,12 +51,8 @@ public class LogProcessor {
                     try {
                         switch (action) {
                             case "CREATE_USER" -> {
-                                try {
-                                    users.add(new User(p[1], p[2]));
-                                    System.out.println("[LOG] Usuário criado: " + p[1]);
-                                } catch (IllegalArgumentException e) {
-                                    System.err.println("[ERRO DE ENTRADA] Falha ao criar usuário: " + e.getMessage());
-                                }
+                                users.add(new User(p[1], p[2]));
+                                System.out.println("[LOG] Usuário criado: " + p[1]);
                             }
                             case "CREATE_PROJECT" -> {
                                 Project project = new Project(p[1], Integer.parseInt(p[2]));
@@ -46,17 +60,15 @@ public class LogProcessor {
                                 System.out.println("[LOG] Projeto criado: " + p[1]);
                             }
                             case "CREATE_TASK" -> {
-                                Task t = new Task(p[1], LocalDate.parse(p[2]));
-                                t.defineEffort(Integer.parseInt(p[3]));
-                                workspace.addTask(t);
                                 Project project = workspace.getProjectByName(p[4]);
-                                project.addTask(t);
+                                Task t = project.addTask(p[1], LocalDate.parse(p[2]), Integer.parseInt(p[3]));
+                                workspace.addTask(t);
                                 System.out.println("[LOG] Tarefa criada: " + p[1]);
                             }
                             case "ASSIGN_USER" -> {
                                 Task task = workspace.getTaskById(Integer.parseInt(p[1]));
                                 User user = workspace.getUserByName(p[2], users);
-                                task.moveToInProgress(user);
+                                task.assignOwner(user);
                                 System.out.println("[LOG] Tarefa '" + p[1] + "' atribuída a " + p[2]);
                             }
                             case "CHANGE_STATUS" -> {
@@ -64,22 +76,23 @@ public class LogProcessor {
                                 String newStatus = p[2];
                                 switch (newStatus) {
                                     case "TO_DO" -> {
-                                        task.markAsDone();
-                                        System.out.println("[LOG] Tarefa '" + p[1] + "' marcada como DONE");
+                                        // Caso não existente?
+                                        // task.markAsDone();
+                                        // System.out.println("[LOG] Tarefa '" + p[1] + "' marcada como TO_DO");
                                     }
                                     case "IN_PROGRESS" -> {
-                                        task.setBlocked(true);
-                                        System.out.println("[LOG] Tarefa '" + p[1] + "' bloqueada");
+                                        task.moveToInProgress();
+                                        System.out.println("[LOG] Tarefa '" + p[1] + "' marcada como IN_PROGRESS");
                                     }
                                     case "BLOCKED" -> {
-                                        task.setBlocked(false);
-                                        System.out.println("[LOG] Tarefa '" + p[1] + "' desbloqueada");
+                                        task.setBlocked(true);
+                                        System.out.println("[LOG] Tarefa '" + p[1] + "' marcada como BLOCKED");
                                     }
                                     case "DONE" -> {
                                         task.markAsDone();
                                         System.out.println("[LOG] Tarefa '" + p[1] + "' marcada como DONE");
                                     }
-                                    default -> throw new NexusValidationException("Status desconhecido: " + newStatus);
+                                    default -> throw new IllegalArgumentException("Status desconhecido: " + newStatus);
                                 }
                             }
                             case "REPORT_STATUS" -> {
@@ -103,6 +116,8 @@ public class LogProcessor {
                         }
                     } catch (NexusValidationException e) {
                         System.err.println("[ERRO DE REGRAS] Falha no comando '" + line + "': " + e.getMessage());
+                    } catch (IllegalArgumentException e) {
+                        System.err.println("[ERRO DE ENTRADA] Falha ao criar usuário: " + e.getMessage());
                     }
                 }
             }
